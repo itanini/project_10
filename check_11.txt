@@ -1,7 +1,11 @@
-\\cut  this
+/*MY NAME IS
+WHAT IS YOU
+ ITAMAR*/
 
+//comment
 if (x < 0) {
   let state = "negative";
   let x = 3
+//comment
  my_foo(x)
 }

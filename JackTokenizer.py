@@ -11,7 +11,8 @@ import re
 END_COMMENT = ['//']
 COMMENT = ['/*', '*/']
 DOCUMENTATION = ['/**', '*/']
-COMMENT_REGEX= r'\/\/.*|\/\*+.*\*\/'
+CLOSED_COMMENT_REGEX= r'\/\*+.*\*\/'
+OPEN_COMMENT_REGEX = r'\/\/.*'
 ALL_COMMENTS = set(END_COMMENT+COMMENT+DOCUMENTATION)
 
 
@@ -136,14 +137,20 @@ class JackTokenizer:
         # A good place to start is to read all the lines of the input:
         self.output_file = open("output_file.txt", "w")
         self.output_file.write("<tokens>\n")
-        input_lines = input_stream.read().splitlines()
 
-        re.findall()
+        raw_txt = input_stream.read()
+        comment_clean_input = re.sub(CLOSED_COMMENT_REGEX, '', raw_txt, flags=re.DOTALL)
+        comment_clean_input = re.sub(OPEN_COMMENT_REGEX, '', comment_clean_input)
+
+        input_lines = comment_clean_input.splitlines()
+
+
         self.cur_token = None
         self.cur_line = None
 
         for cur_line in input_lines:
-
+            if cur_line == "":
+                continue
             self.cur_line = regex_maker(cur_line)
             while self.has_more_tokens():
                 self.advance()
