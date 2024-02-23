@@ -1,0 +1,7 @@
+\\cut  this
+
+if (x < 0) {
+  let state = "negative";
+  let x = 3
+ my_foo(x)
+}
