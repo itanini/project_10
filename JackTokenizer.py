@@ -153,6 +153,7 @@ class JackTokenizer:
             self.cur_line = regex_maker(cur_line)
             while self.has_more_tokens():
                 yield self.advance()
+        yield None
 
     def process_token(self, cur_token_text, token_type):
         if token_type == "SYMBOL":
