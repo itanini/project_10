@@ -49,4 +49,5 @@ if "__main__" == __name__:
         output_path = filename + ".xml"
         with open(input_path, 'r') as input_file, \
                 open(output_path, 'w') as output_file:
-            analyze_file(input_file, output_file)
+            pass
+        analyze_file(input_file, output_file)

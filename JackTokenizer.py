@@ -36,7 +36,7 @@ OBJECTIVE_REFERENCE = ['this']
 
 KEYWORD = set(PROGRAM_COMPONENTS+PRIMITIVE_TYPES+VARIABLE_DECLARATIONS+STATEMENTS+CONSTANT_VALUES+OBJECTIVE_REFERENCE)
 
-REGEX = r'(?!\/\/.*)|"?\w+"?|\/\/|\*\/|\/\*+|-|\*\/|&|\||~|<|>|\(|\)|\[|\]|\{|}|,|;|=|\.|\+|-|\*|\/|&|\||~|<|>|^|#'
+REGEX = r'"?\w+"?|\/\/|\*\/|\/\*+|-|\*\/|&|\||~|<|>|\(|\)|\[|\]|\{|}|,|;|=|\.|\+|-|\*|\/|&|\||~|<|>|\^|#'
 
 
 def regex_maker(cur_line: str):
@@ -138,7 +138,8 @@ class JackTokenizer:
         self.cur_token = None
         self.cur_line = None
         comment_clean_input = self.comment_cleaner(input_stream)
-        self.input_lines = comment_clean_input.splitlines()
+        self.input_lines = [line for line in comment_clean_input.splitlines() if line != '']
+        pass
 
     def comment_cleaner(self, input_stream):
         raw_txt = input_stream.read()
@@ -148,8 +149,6 @@ class JackTokenizer:
 
     def token_generator(self):
         for cur_line in self.input_lines:
-            if cur_line == "":
-                continue
             self.cur_line = regex_maker(cur_line)
             while self.has_more_tokens():
                 yield self.advance()
@@ -184,7 +183,7 @@ class JackTokenizer:
         Initially there is no current token.
         """
         cur_token_text = ""
-        while cur_token_text == "":
+        while cur_token_text == "" and self.cur_line:
             cur_token_text = self.cur_line.pop(0)
         if cur_token_text != "":
             token_type = self.token_type(cur_token_text)
@@ -207,7 +206,7 @@ class JackTokenizer:
         else:
             try:
                 int(token_text)
-                return "INTEGER_CONS"
+                return "INT_CONST"
             except ValueError:
                 return "IDENTIFIER"
 
@@ -280,10 +279,10 @@ class JackTokenizer:
 class Token:
     def __init__(self, text: str, token_type: str) -> None:
         self.text = text
-        self.token_type = token_type
+        self.type = token_type
 
     def set_type(self, token_type):
-        self.token_type = token_type
+        self.type = token_type
 
     def set_text(self, text):
         self.text = text
