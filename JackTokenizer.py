@@ -23,7 +23,7 @@ LIST_SEPARATOR=[',']
 STATEMENT_TERMINATOR = [';']
 COMPARISON_OPERATOR = ['=']
 CLASS_MEMBERSHIP = ['.']
-OPERATORS = ['+','-','*','/','&','|','~', '<','>']
+OPERATORS = ['+','-','*','/','&','|','~', '<','>','^','#']
 SYMBOLS = set(ARITHMETIC_GROUPING+ARRAY_INDEXING+STATEMENT_GROUPING+LIST_SEPARATOR+STATEMENT_TERMINATOR+
               COMPARISON_OPERATOR+CLASS_MEMBERSHIP+OPERATORS)
 
@@ -36,7 +36,7 @@ OBJECTIVE_REFERENCE = ['this']
 
 KEYWORD = set(PROGRAM_COMPONENTS+PRIMITIVE_TYPES+VARIABLE_DECLARATIONS+STATEMENTS+CONSTANT_VALUES+OBJECTIVE_REFERENCE)
 
-REGEX = r'(?!\/\/.*)|"?\w+"?|\/\/|\*\/|\/\*+|-|\*\/|&|\||~|<|>|\(|\)|\[|\]|\{|}|,|;|=|\.|\+|-|\*|\/|&|\||~|<|>'
+REGEX = r'(?!\/\/.*)|"?\w+"?|\/\/|\*\/|\/\*+|-|\*\/|&|\||~|<|>|\(|\)|\[|\]|\{|}|,|;|=|\.|\+|-|\*|\/|&|\||~|<|>|^|#'
 
 
 def regex_maker(cur_line: str):
@@ -135,34 +135,24 @@ class JackTokenizer:
         """
         # Your code goes here!
         # A good place to start is to read all the lines of the input:
-        self.output_file = open("output_file.txt", "w")
-        self.output_file.write("<tokens>\n")
+        self.cur_token = None
+        self.cur_line = None
+        comment_clean_input = self.comment_cleaner(input_stream)
+        self.input_lines = comment_clean_input.splitlines()
 
+    def comment_cleaner(self, input_stream):
         raw_txt = input_stream.read()
         comment_clean_input = re.sub(CLOSED_COMMENT_REGEX, '', raw_txt, flags=re.DOTALL)
         comment_clean_input = re.sub(OPEN_COMMENT_REGEX, '', comment_clean_input)
+        return comment_clean_input
 
-        input_lines = comment_clean_input.splitlines()
-
-
-        self.cur_token = None
-        self.cur_line = None
-
-        for cur_line in input_lines:
+    def token_generator(self):
+        for cur_line in self.input_lines:
             if cur_line == "":
                 continue
             self.cur_line = regex_maker(cur_line)
             while self.has_more_tokens():
-                self.advance()
-                try:
-                    token_type = self.token_type()
-                except IndexError:
-                    continue
-                self.process_token(token_type)
-
-                self.output_file.write(f"<{token_type}> {self.cur_token} </{token_type}> \n")
-
-        self.output_file.write("</tokens>\n")
+                yield self.advance()
 
     def process_token(self, token_type):
         if token_type == "symbol":
@@ -187,12 +177,18 @@ class JackTokenizer:
         return True
 
 
-    def advance(self) -> None:
+    def advance(self) -> str:
         """Gets the next token from the input and makes it the current token. 
         This method should be called if has_more_tokens() is true. 
         Initially there is no current token.
         """
         self.cur_token = self.cur_line.pop(0)
+        try:
+            token_type = self.token_type()
+            self.process_token(token_type)
+            return f"<{token_type}> {self.cur_token} </{token_type}> \n"
+        except IndexError:
+            return ""
 
     def token_type(self) -> str:
         """
