@@ -6,6 +6,7 @@ as allowed by the Creative Common Attribution-NonCommercial-ShareAlike 3.0
 Unported [License](https://creativecommons.org/licenses/by-nc-sa/3.0/).
 """
 import typing
+import JackTokenizer
 
 
 class CompilationEngine:
@@ -13,7 +14,7 @@ class CompilationEngine:
     output stream.
     """
 
-    def __init__(self, input_stream: "JackTokenizer", output_stream) -> None:
+    def __init__(self, input_stream: JackTokenizer, output_stream) -> None:
         """
         Creates a new compilation engine with the given input and output. The
         next routine called must be compileClass()
@@ -22,7 +23,8 @@ class CompilationEngine:
         """
         # Your code goes here!
         # Note that you can write to output_stream like so:
-        # output_stream.write("Hello world! \n")
+        self.tokenizer = input_stream
+        output_stream.write("Hello world! \n")
         pass
 
     def compile_class(self) -> None:

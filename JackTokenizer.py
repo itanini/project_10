@@ -177,18 +177,17 @@ class JackTokenizer:
         return True
 
 
-    def advance(self) -> str:
+    def advance(self):
         """Gets the next token from the input and makes it the current token. 
         This method should be called if has_more_tokens() is true. 
         Initially there is no current token.
         """
-        self.cur_token = self.cur_line.pop(0)
         try:
-            token_type = self.token_type()
+            self.cur_token = Token(self.cur_line.pop(0), self.token_type())
             self.process_token(token_type)
-            return f"<{token_type}> {self.cur_token} </{token_type}> \n"
+            return Token(self.cur_token, token_type)
         except IndexError:
-            return ""
+            return None
 
     def token_type(self) -> str:
         """
@@ -197,17 +196,17 @@ class JackTokenizer:
             "KEYWORD", "SYMBOL", "IDENTIFIER", "INT_CONST", "STRING_CONST"
         """
         if self.cur_token in SYMBOLS:
-            return "symbol"
+            return "SYMBOL"
         elif self.cur_token in KEYWORD:
-            return "keyword"
+            return "KEYWORD"
         elif self.cur_token[0] == '"' and self.cur_token[-1] == '"':
-            return "stringConstant"
+            return "STRING_CONST"
         else:
             try:
                 int(self.cur_token)
-                return "integerConstant"
+                return "INTEGER_CONS"
             except ValueError:
-                return "identifier"
+                return "IDENTIFIER"
 
 
     def keyword(self) -> str:
@@ -219,7 +218,7 @@ class JackTokenizer:
             "BOOLEAN", "CHAR", "VOID", "VAR", "STATIC", "FIELD", "LET", "DO", 
             "IF", "ELSE", "WHILE", "RETURN", "TRUE", "FALSE", "NULL", "THIS"
         """
-        return self.cur_token
+        return self.cur_token.upper()
 
     def symbol(self) -> str:
         """
@@ -273,3 +272,15 @@ class JackTokenizer:
                       double quote or newline '"'
         """
         return self.cur_token[1:-1]
+
+
+class Token:
+    def __init__(self, text: str, token_type: str) -> None:
+        self.text = text
+        self.token_type = token_type
+
+    def set_type(self, token_type):
+        self.token_type = token_type
+
+    def set_text(self, text):
+        self.text = text
