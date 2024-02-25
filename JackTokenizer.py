@@ -1,5 +1,4 @@
-"""
-This file is part of nand2tetris, as taught in The Hebrew University, and
+"""This file is part of nand2tetris, as taught in The Hebrew University, and
 was written by Aviv Yaish. It is an extension to the specifications given
 [here](https://www.nand2tetris.org) (Shimon Schocken and Noam Nisan, 2017),
 as allowed by the Creative Common Attribution-NonCommercial-ShareAlike 3.0
@@ -9,9 +8,9 @@ import typing
 import re
 
 END_COMMENT = ['//']
-COMMENT = ['/*', '*/']
-DOCUMENTATION = ['/**', '*/']
-CLOSED_COMMENT_REGEX= r'\/\*+.*\*\/'
+COMMENT = ['/', '/']
+DOCUMENTATION = ['/', '*/']
+CLOSED_COMMENT_REGEX = r'\/\/?\*.*\*\/'
 OPEN_COMMENT_REGEX = r'\/\/.*'
 ALL_COMMENTS = set(END_COMMENT+COMMENT+DOCUMENTATION)
 
@@ -30,17 +29,22 @@ SYMBOLS = set(ARITHMETIC_GROUPING+ARRAY_INDEXING+STATEMENT_GROUPING+LIST_SEPARAT
 PROGRAM_COMPONENTS = ['class', 'constructor', 'method', 'function']
 PRIMITIVE_TYPES = ['int', 'boolean', 'char', 'void']
 VARIABLE_DECLARATIONS = ['var', 'static', 'field']
-STATEMENTS= ['let', 'do', 'if', 'else', 'while', 'return']
+STATEMENTS = ['let', 'do', 'if', 'else', 'while', 'return']
 CONSTANT_VALUES = ['true', 'false', 'null']
 OBJECTIVE_REFERENCE = ['this']
 
 KEYWORD = set(PROGRAM_COMPONENTS+PRIMITIVE_TYPES+VARIABLE_DECLARATIONS+STATEMENTS+CONSTANT_VALUES+OBJECTIVE_REFERENCE)
 
-REGEX = r'"?\w+"?|\/\/|\*\/|\/\*+|-|\*\/|&|\||~|<|>|\(|\)|\[|\]|\{|}|,|;|=|\.|\+|-|\*|\/|&|\||~|<|>|\^|#'
+CLASS_NAMES = []
+FUNCTION_NAMES = []
+REGEX = r'"?\w+"?|\/\/|\\/|\/\+|-|\\/|&|\||~|<|>|\(|\)|\[|\]|\{|}|,|;|=|\.|\+|-|\|\/|&|\||~|<|>|\^|#'
+
+
 
 
 def regex_maker(cur_line: str):
     return re.findall(REGEX, cur_line)
+
 
 
 class JackTokenizer:
@@ -53,7 +57,7 @@ class JackTokenizer:
     valid program, it can be tokenized into a stream of valid tokens. The
     tokens may be separated by an arbitrary number of whitespace characters,
     and comments, which are ignored. There are three possible comment formats:
-    /* comment until closing */ , /** API comment until closing */ , and
+    /* comment until closing / , /* API comment until closing */ , and
     // comment until the line’s end.
 
     - ‘xxx’: quotes are used for tokens that appear verbatim (‘terminals’).
@@ -135,15 +139,16 @@ class JackTokenizer:
         """
         # Your code goes here!
         # A good place to start is to read all the lines of the input:
+        #
         self.cur_token = None
         self.cur_line = None
-        comment_clean_input = self.comment_cleaner(input_stream)
+        file = input_stream.read()
+        comment_clean_input = self.comment_cleaner(file)
         self.input_lines = [line for line in comment_clean_input.splitlines() if line != '']
         pass
 
     def comment_cleaner(self, input_stream):
-        raw_txt = input_stream.read()
-        comment_clean_input = re.sub(CLOSED_COMMENT_REGEX, '', raw_txt, flags=re.DOTALL)
+        comment_clean_input = re.sub(CLOSED_COMMENT_REGEX, '', input_stream, flags=re.DOTALL)
         comment_clean_input = re.sub(OPEN_COMMENT_REGEX, '', comment_clean_input)
         return comment_clean_input
 
@@ -176,7 +181,6 @@ class JackTokenizer:
             return False
         return True
 
-
     def advance(self):
         """Gets the next token from the input and makes it the current token. 
         This method should be called if has_more_tokens() is true. 
@@ -189,7 +193,6 @@ class JackTokenizer:
             token_type = self.token_type(cur_token_text)
             cur_token_text = self.process_token(cur_token_text, token_type)
             return Token(cur_token_text, token_type)
-
 
     def token_type(self, token_text) -> str:
         """
@@ -210,7 +213,6 @@ class JackTokenizer:
             except ValueError:
                 return "IDENTIFIER"
 
-
     def keyword(self,cur_token_text) -> str:
         """
         Returns:
@@ -222,7 +224,7 @@ class JackTokenizer:
         """
         return cur_token_text.upper()
 
-    def symbol(self,cur_token_text) -> str:
+    def symbol(self, cur_token_text) -> str:
         """
         Returns:
             str: the character which is the current token.
@@ -252,7 +254,6 @@ class JackTokenizer:
         """
         assert not cur_token_text.isdigit()
         return cur_token_text
-
 
     def int_val(self, cur_token_text) -> int:
         """
@@ -286,3 +287,6 @@ class Token:
 
     def set_text(self, text):
         self.text = text
+
+    def token_string(self) -> str:
+        return f'<{self.type}> {self.text} </{self.type}>\n'
